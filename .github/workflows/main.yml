@@ -1,71 +1,88 @@
-  name: CI/CD Pipeline
-  
-  on:
-    push:
-      branches:
-        - main 
-    pull_request:
-      branches:
-        - main
-  jobs:
-    lint:
-      name: je lance le lint
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v3
-          
-        - name: set up node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 18
-              
-        - name: instal CI
-          run: npm ci
+name: CI/CD Pipeline
 
-        - name: execute lint
-          run: npm run lint
-          
-            
-    test:
-      name: je lance le test
-      runs-on: ubuntu-latest
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v3
-          
-        - name: set up node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 18
-              
-        - name: instal CI
-          run: npm ci
-          
-        - name: execute test
-          run: npm run test:unit
-  
-    build:
-      name: build le projet
-      runs-on: ubuntu-latest
-      needs: [test, lint]
-      steps:
-        - name: Checkout code
-          uses: actions/checkout@v3
-          
-        - name: set up node
-          uses: actions/setup-node@v3
-          with:
-            node-version: 18
-            
-        - name: instal CI
-          run: npm ci
-          
-        - name: execute build
-          run: npm run build
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
 
-        - name: create artifact build
-          uses: actions/upload-artifact@v3
-          with:
-            name: build
-            path: dist
+jobs:
+  lint:
+    name: Je lance le lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install CI
+        run: npm ci
+
+      - name: Execute lint
+        run: npm run lint
+
+  test:
+    name: Je lance les tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install CI
+        run: npm ci
+
+      - name: Execute test
+        run: npm run test:unit
+
+  build:
+    name: Build le projet
+    runs-on: ubuntu-latest
+    needs: [test, lint]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install CI
+        run: npm ci
+
+      - name: Execute build
+        run: npm run build
+
+      - name: Create artifact build
+        uses: actions/upload-artifact@v3
+        with:
+          name: build
+          path: dist
+
+  deploy:
+    name: Deploy to Netlify
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Netlify CLI
+        run: npm install -g netlify-cli
+
+      - name: Deploy to Netlify
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: ${{ secrets.NETLIFY_SITE_ID }}
+        run: netlify deploy --dir=dist --prod
