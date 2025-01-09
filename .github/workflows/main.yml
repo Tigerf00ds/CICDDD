@@ -75,8 +75,11 @@ jobs:
     runs-on: ubuntu-latest
     needs: [build]
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+      - name: Downlowd Build artefacts
+        uses: actions/download-artifact@v4
+        with:
+            name: Build
+            path: ./dist # Spécifie où les artrfacts doivent être
 
       - name: Install Netlify CLI
         run: npm install -g netlify-cli
